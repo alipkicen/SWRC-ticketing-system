@@ -1,6 +1,28 @@
+from shareplum import Site
+from shareplum import Office365
+from shareplum.site import Version
 import streamlit as st
 import datetime
-import pandas as pd
+
+# Function to submit a ticket to SharePoint
+def submit_ticket_to_sharepoint(ticket_data):
+    try:
+        # SharePoint credentials (replace with secure method in production)
+        username = "kbinmuhammad@micron.com"
+        password = "Najuwa@990702"
+
+        # Authenticate and connect to SharePoint
+        authcookie = Office365('https://microncorp.sharepoint.com', username=username, password=password).GetCookies()
+        site = Site('https://microncorp.sharepoint.com/sites/MMPGQ', version=Version.v365, authcookie=authcookie)
+
+        # Connect to the SharePoint list
+        sp_list = site.List('SWRC TASK TRACKER')
+
+        # Submit the ticket
+        sp_list.UpdateListItems(data=[ticket_data], kind='New')
+        return True, "Ticket submitted successfully to SharePoint."
+    except Exception as e:
+        return False, f"Error submitting ticket: {e}"
 
 # Set page configuration to wide mode
 st.set_page_config(page_title="SWRC Ticketing System", page_icon="🎫", layout="wide")
