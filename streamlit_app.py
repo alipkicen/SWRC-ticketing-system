@@ -1,41 +1,30 @@
 import streamlit as st
-import pyodbc
+import sqlite3
 import datetime
+import pandas as pd
 
-# Set page layout
+# Set up SQLite connection
+conn = sqlite3.connect("tickets.db", check_same_thread=False)
+cursor = conn.cursor()
+
+# Create table if it doesn't exist
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS Tickets (
+    TicketID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Requestor TEXT,
+    DateRequested TEXT,
+    Product TEXT,
+    Priority TEXT,
+    RequestType TEXT,
+    Description TEXT
+)
+""")
+conn.commit()
+
+# Streamlit UI
 st.set_page_config(page_title="SWRC Ticketing System", page_icon="🎫", layout="wide")
-
-# Function to insert ticket into SQL Server
-def insert_ticket(requestor, product, priority, request_type, description):
-    try:
-        conn = pyodbc.connect(
-            "DRIVER={ODBC Driver 17 for SQL Server};"
-            "SERVER=ITLOAN197-LAP\SQLEXPRESS;"
-            "DATABASE=TicketingSystem;"
-            "Trusted_Connection=yes;"
-        )
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO Tickets (Requestor, DateRequested, Product, Priority, RequestType, Description)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            requestor,
-            datetime.datetime.now().date(),
-            product,
-            priority,
-            request_type,
-            description
-        ))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True, "✅ Ticket submitted successfully to SQL Server."
-    except Exception as e:
-        return False, f"❌ Error: {e}"
-
-# UI
 st.title("🎫 SWRC Ticketing Request")
-st.write("Please submit a request for any SWRC task. Job requests will be executed based on FIFO flow.")
+st.write("Submit a request for any SWRC task. Tickets are processed FIFO.")
 
 st.header("➕ Add a New Ticket")
 
@@ -48,17 +37,15 @@ with st.form("add_ticket_form"):
     submitted = st.form_submit_button("Submit Ticket")
 
 if submitted:
-    success, message = insert_ticket(requestor, product, priority, request_type, description)
-    if success:
-        st.success(message)
-        st.write("### Ticket Details")
-        st.write({
-            "Requestor": requestor,
-            "Date Requested": datetime.datetime.now().strftime("%Y-%m-%d"),
-            "Product": product,
-            "Priority": priority,
-            "Request Type": request_type,
-            "Description": description
-        })
-    else:
-        st.error(message)
+    date_requested = datetime.datetime.now().strftime("%Y-%m-%d")
+    cursor.execute("""
+        INSERT INTO Tickets (Requestor, DateRequested, Product, Priority, RequestType, Description)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (requestor, date_requested, product, priority, request_type, description))
+    conn.commit()
+    st.success("✅ Ticket submitted successfully!")
+
+# Display all tickets
+st.header("📋 Submitted Tickets")
+tickets_df = pd.read_sql_query("SELECT * FROM Tickets ORDER BY TicketID DESC", conn)
+st.dataframe(tickets_df, use_container_width=True, hide_index=True)
