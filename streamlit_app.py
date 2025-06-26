@@ -1,24 +1,17 @@
-# Ensure the 'openpyxl' library is installed and used as the engine for pandas to_excel function
 import streamlit as st
 import pandas as pd
 import datetime
-import os
 
 # Set page configuration to wide mode
 st.set_page_config(page_title="SWRC Ticketing System", page_icon="🎫", layout="wide")
 
-# Excel file path
-EXCEL_FILE = "tickets.xlsx"
-
-# Load existing tickets or create a new DataFrame
-if os.path.exists(EXCEL_FILE):
-    tickets_df = pd.read_excel(EXCEL_FILE, engine='openpyxl')
-else:
-    tickets_df = pd.DataFrame(columns=[
+# Initialize session state for ticket storage
+if "tickets" not in st.session_state:
+    st.session_state.tickets = pd.DataFrame(columns=[
         "Requestor", "Date Requested", "Product", "Priority", "Request Type", "Description"
     ])
 
-# --- Streamlit UI ---
+# --- UI Header ---
 st.title("🎫 SWRC Ticketing Request")
 st.write(
     """
@@ -28,6 +21,7 @@ st.write(
     """
 )
 
+# --- Add Ticket Form ---
 st.header("➕ Add a New Ticket")
 
 with st.form("add_ticket_form"):
@@ -48,15 +42,15 @@ if submitted:
         "Description": description
     }
 
-    # Append and save to Excel
-    tickets_df = pd.concat([pd.DataFrame([new_ticket]), tickets_df], ignore_index=True)
-    tickets_df.to_excel(EXCEL_FILE, index=False, engine='openpyxl')
+    st.session_state.tickets = pd.concat(
+        [pd.DataFrame([new_ticket]), st.session_state.tickets],
+        ignore_index=True
+    )
 
-    st.success("✅ Ticket submitted and saved to Excel!")
+    st.success("✅ Ticket submitted successfully!")
     st.write("### Ticket Details")
     st.write(new_ticket)
 
-# Display all submitted tickets
+# --- Display Submitted Tickets ---
 st.header("📋 Submitted Tickets")
-st.dataframe(tickets_df, use_container_width=True, hide_index=True)
-
+st.dataframe(st.session_state.tickets, use_container_width=True, hide_index=True)
