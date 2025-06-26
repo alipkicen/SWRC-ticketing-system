@@ -1,31 +1,21 @@
 import streamlit as st
+import pandas as pd
 import datetime
-from shareplum import Site
-from shareplum import Office365
-from shareplum.site import Version
+import os
 
 # Set page configuration to wide mode
 st.set_page_config(page_title="SWRC Ticketing System", page_icon="🎫", layout="wide")
 
-# --- SharePoint Submission Function ---
-def submit_ticket_to_sharepoint(ticket_data):
-    try:
-        # Replace with your actual SharePoint credentials
-        username = "kbinmuhammad@micron.com"
-        password = "Najuwa@990702"
+# Excel file path
+EXCEL_FILE = "tickets.xlsx"
 
-        # Authenticate and connect to SharePoint
-        authcookie = Office365('https://microncorp.sharepoint.com', username=username, password=password).GetCookies()
-        site = Site('https://microncorp.sharepoint.com/sites/MMPGQ', version=Version.v365, authcookie=authcookie)
-
-        # Connect to the SharePoint list
-        sp_list = site.List('SWRC TASK REQUEST')
-
-        # Submit the ticket
-        sp_list.UpdateListItems(data=[ticket_data], kind='New')
-        return True, "✅ Ticket submitted successfully to SharePoint."
-    except Exception as e:
-        return False, f"❌ Error submitting ticket: {e}"
+# Load existing tickets or create a new DataFrame
+if os.path.exists(EXCEL_FILE):
+    tickets_df = pd.read_excel(EXCEL_FILE)
+else:
+    tickets_df = pd.DataFrame(columns=[
+        "Requestor", "Date Requested", "Product", "Priority", "Request Type", "Description"
+    ])
 
 # --- Streamlit UI ---
 st.title("🎫 SWRC Ticketing Request")
@@ -48,20 +38,23 @@ with st.form("add_ticket_form"):
     submitted = st.form_submit_button("Submit Ticket")
 
 if submitted:
-    ticket = {
-        'Title': f"{request_type} - {product}",
-        'Requestor': requestor,
-        'Product': product,
-        'Priority': priority,
-        'Request': request_type,
-        'Job Request Description': description,
-        'Date of request': datetime.datetime.now().strftime("%Y-%m-%d")
+    new_ticket = {
+        "Requestor": requestor,
+        "Date Requested": datetime.datetime.now().strftime("%Y-%m-%d"),
+        "Product": product,
+        "Priority": priority,
+        "Request Type": request_type,
+        "Description": description
     }
 
-    success, message = submit_ticket_to_sharepoint(ticket)
-    if success:
-        st.success(message)
-        st.write("### Ticket Details")
-        st.write(ticket)
-    else:
-        st.error(message)
+    # Append and save to Excel
+    tickets_df = pd.concat([pd.DataFrame([new_ticket]), tickets_df], ignore_index=True)
+    tickets_df.to_excel(EXCEL_FILE, index=False)
+
+    st.success("✅ Ticket submitted and saved to Excel!")
+    st.write("### Ticket Details")
+    st.write(new_ticket)
+
+# Display all submitted tickets
+st.header("📋 Submitted Tickets")
+st.dataframe(tickets_df, use_container_width=True, hide_index=True)
