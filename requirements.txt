@@ -1,7 +1,3 @@
 streamlit
-SharePlum
-Office365-REST-Python-Client
-requests_ntlm
 pandas
 datetime
-os
