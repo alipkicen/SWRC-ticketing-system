@@ -1,4 +1,4 @@
 streamlit
 pandas
 datetime
-pyodbc
+sqlite3
