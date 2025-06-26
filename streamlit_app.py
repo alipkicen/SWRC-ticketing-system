@@ -1,3 +1,4 @@
+# Ensure the 'openpyxl' library is installed and used as the engine for pandas to_excel function
 import streamlit as st
 import pandas as pd
 import datetime
@@ -11,7 +12,7 @@ EXCEL_FILE = "tickets.xlsx"
 
 # Load existing tickets or create a new DataFrame
 if os.path.exists(EXCEL_FILE):
-    tickets_df = pd.read_excel(EXCEL_FILE)
+    tickets_df = pd.read_excel(EXCEL_FILE, engine='openpyxl')
 else:
     tickets_df = pd.DataFrame(columns=[
         "Requestor", "Date Requested", "Product", "Priority", "Request Type", "Description"
@@ -49,7 +50,7 @@ if submitted:
 
     # Append and save to Excel
     tickets_df = pd.concat([pd.DataFrame([new_ticket]), tickets_df], ignore_index=True)
-    tickets_df.to_excel(EXCEL_FILE, index=False)
+    tickets_df.to_excel(EXCEL_FILE, index=False, engine='openpyxl')
 
     st.success("✅ Ticket submitted and saved to Excel!")
     st.write("### Ticket Details")
@@ -58,3 +59,4 @@ if submitted:
 # Display all submitted tickets
 st.header("📋 Submitted Tickets")
 st.dataframe(tickets_df, use_container_width=True, hide_index=True)
+
