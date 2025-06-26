@@ -7,8 +7,10 @@ st.set_page_config(page_title="SWRC Ticketing System", page_icon="🎫", layout=
 # Top header
 st.title("🎫 SWRC Ticketing Request")
 st.write(
-    """ 
-    Please submit a request for any SWRC task.  Job requests will be executed based on FIFO flow.
+    """
+    Welcome to the SWRC Ticketing System.  
+    Please submit a request for any SWRC task.  
+    Job requests will be executed based on FIFO flow.
     """
 )
 
@@ -16,14 +18,20 @@ st.write(
 st.header("➕ Add a New Ticket")
 
 with st.form("add_ticket_form"):
-    issue = st.text_area("📝 Describe the issue", placeholder="e.g., VPN not connecting from home")
-    priority = st.selectbox("🚦 Priority", ["High", "Medium", "Low"])
+    requestor = st.text_input("👤 Requestor Name", placeholder="Enter your full name")
+    date_requested = datetime.datetime.now().strftime("%Y-%m-%d")
+    product = st.selectbox("📦 Product", ["SSD", "Module", "Component"])
+    priority = st.selectbox("🚦 Priority", ["P1 - High Priority", "P2 - Medium Priority", "P3 - Low Priority"])
+    request_type = st.selectbox("📄 Type of Request", ["Scrap Request", "Sampling", "Lot Transfer", "Shipment"])
+    description = st.text_area("📝 Job Request Description", placeholder="Describe the job request in detail")
     submitted = st.form_submit_button("Submit Ticket")
 
 if submitted:
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
     st.success("✅ Ticket submitted successfully!")
     st.write("### Ticket Details")
-    st.write(f"**Issue:** {issue}")
+    st.write(f"**Requestor:** {requestor}")
+    st.write(f"**Date Requested:** {date_requested}")
+    st.write(f"**Product:** {product}")
     st.write(f"**Priority:** {priority}")
-    st.write(f"**Date Submitted:** {today}")
+    st.write(f"**Request Type:** {request_type}")
+    st.write(f"**Description:** {description}")
