@@ -7,10 +7,8 @@ st.set_page_config(page_title="SWRC Ticketing System", page_icon="🎫", layout=
 # Top header
 st.title("🎫 SWRC Ticketing Request")
 st.write(
-    """
-    Welcome to the SWRC Ticketing System.  
-    Please submit a request for any SWRC task.  
-    Job requests will be executed based on FIFO flow.
+    """ 
+    Please submit a request for any SWRC task.  Job requests will be executed based on FIFO flow.
     """
 )
 
